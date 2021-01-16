@@ -2,7 +2,6 @@ import * as BABYLON from "babylonjs";
 import { RangeMap } from "./helper";
 import { entity } from "./enum";
 import "./styles/app.css";
-import { Camera, Vector2, Vector3 } from "babylonjs";
 
 const canvas = document.getElementById("render-canvas") as HTMLCanvasElement;
 const engine = new BABYLON.Engine(canvas, true, null, true);
@@ -26,27 +25,37 @@ const initializeScene = () => {
     new BABYLON.Vector3(0, 0, 0),
     scene
   );
-  camera.setPosition(new BABYLON.Vector3(0, 20, -20));
+  camera.setPosition(new BABYLON.Vector3(0, 3, -2.25));
   camera.attachControl(canvas, true);
 
-  const postProcess = new BABYLON.ImageProcessingPostProcess(
-    entity.postProcess,
+  const imageProcessing = new BABYLON.ImageProcessingPostProcess(
+    entity.imagePostProcess,
     1.0,
     camera
   );
-  postProcess.vignetteWeight = 0.7;
-  postProcess.vignetteStretch = 5;
-  postProcess.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
-  postProcess.vignetteEnabled = true;
+  imageProcessing.vignetteWeight = 0.5;
+  imageProcessing.vignetteStretch = 2;
+  imageProcessing.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
+  imageProcessing.vignetteEnabled = true;
 
-  // const gl = new BABYLON.GlowLayer(entity.glowLayer, scene, {
-  //   mainTextureSamples: 1,
-  // });
-  // gl.intensity = 0.5;
+  const lensProcessingParameters = {
+    edge_blur: 1.0,
+    chromatic_aberration: 5.0,
+    distortion: 1.0,
+    grain_amount: 2.5,
+  };
 
-  const light = new BABYLON.PointLight(
+  const lensProcessing = new BABYLON.LensRenderingPipeline(
+    entity.lensPostProcess,
+    lensProcessingParameters,
+    scene,
+    1.0,
+    [camera]
+  );
+
+  const light = new BABYLON.HemisphericLight(
     entity.mainLight,
-    new BABYLON.Vector3(0, 100, 0),
+    new BABYLON.Vector3(0, 1, 0),
     scene
   );
   light.diffuse = new BABYLON.Color3(1, 1, 1);
@@ -64,10 +73,9 @@ const intializeBoxField = () => {
 
   // Create Object Field
   for (let i = 0; i < instanceCount; i++) {
-    const fieldLength = boxField.push(
-      // BABYLON.Mesh.CreateBox(`${entity.boxName}-${i}`, boxSize, scene)
-      parentBox.createInstance(`${entity.boxName}-${i}`)
-    );
+    const instance = parentBox.createInstance(`${entity.boxName}-${i}`);
+    instance.alwaysSelectAsActiveMesh = true;
+    const fieldLength = boxField.push(instance);
     const meshPos = fieldLength - 1;
 
     // Offsetting Field to Central Position

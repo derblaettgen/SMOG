@@ -1,7 +1,8 @@
 export enum entity {
   mainCamera = "camera",
   mainLight = "light",
-  postProcess = "processing",
+  imagePostProcess = "imageProcessing",
+  lensPostProcess = "lensProcessing",
   glowLayer = "glow",
   boxFieldRoot = "root",
   boxMaterial = "boxMaterial",
