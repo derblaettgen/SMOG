@@ -2,14 +2,17 @@ import * as BABYLON from "babylonjs";
 import { RangeMap } from "./helper";
 import { entity } from "./enum";
 import "./styles/app.css";
+import { Camera, Vector2, Vector3 } from "babylonjs";
 
 const canvas = document.getElementById("render-canvas") as HTMLCanvasElement;
 const engine = new BABYLON.Engine(canvas, true, null, true);
 const scene = new BABYLON.Scene(engine);
 
-const boxField: BABYLON.Mesh[] = [];
+const boxField: BABYLON.InstancedMesh[] = [];
 const boxSize = 0.4;
-const fieldSquareSize = 24;
+let parentBox: BABYLON.Mesh;
+const fieldSquareSize = 32;
+const instanceCount = Math.pow(fieldSquareSize, 2);
 let counter = 0;
 
 const initializeScene = () => {
@@ -23,7 +26,7 @@ const initializeScene = () => {
     new BABYLON.Vector3(0, 0, 0),
     scene
   );
-  camera.setPosition(new BABYLON.Vector3(0, 3, -2.25));
+  camera.setPosition(new BABYLON.Vector3(0, 20, -20));
   camera.attachControl(canvas, true);
 
   const postProcess = new BABYLON.ImageProcessingPostProcess(
@@ -36,16 +39,17 @@ const initializeScene = () => {
   postProcess.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
   postProcess.vignetteEnabled = true;
 
-  const gl = new BABYLON.GlowLayer(entity.glowLayer, scene, {
-    mainTextureSamples: 1,
-  });
-  gl.intensity = 0.4;
+  // const gl = new BABYLON.GlowLayer(entity.glowLayer, scene, {
+  //   mainTextureSamples: 1,
+  // });
+  // gl.intensity = 0.5;
 
   const light = new BABYLON.PointLight(
     entity.mainLight,
-    new BABYLON.Vector3(10, 10, 0),
+    new BABYLON.Vector3(0, 100, 0),
     scene
   );
+  light.diffuse = new BABYLON.Color3(1, 1, 1);
 };
 
 const intializeBoxField = () => {
@@ -53,10 +57,16 @@ const intializeBoxField = () => {
   const boxMaterial = new BABYLON.StandardMaterial(entity.boxMaterial, scene);
   const boxFieldRoot = new BABYLON.Mesh(entity.boxFieldRoot, scene);
 
+  // Create Parent Box
+  parentBox = BABYLON.Mesh.CreateBox("ParentBox", boxSize, scene);
+  parentBox.material = boxMaterial;
+  parentBox.position = new BABYLON.Vector3(0, -10000, 0);
+
   // Create Object Field
-  for (let i = 0; i < Math.pow(fieldSquareSize, 2); i++) {
+  for (let i = 0; i < instanceCount; i++) {
     const fieldLength = boxField.push(
-      BABYLON.Mesh.CreateBox(`${entity.boxName}-${i}`, boxSize, scene)
+      // BABYLON.Mesh.CreateBox(`${entity.boxName}-${i}`, boxSize, scene)
+      parentBox.createInstance(`${entity.boxName}-${i}`)
     );
     const meshPos = fieldLength - 1;
 
@@ -67,9 +77,6 @@ const intializeBoxField = () => {
     boxField[meshPos].position.z =
       Math.floor(i / fieldSquareSize) * boxSize - middleOffset;
 
-    boxField[meshPos].material = boxMaterial.clone(
-      `${entity.boxMaterial}-${i}`
-    );
     boxField[meshPos].parent = boxFieldRoot;
   }
 };
@@ -78,11 +85,16 @@ const renderLoop = () => {
   const sinHeight = 0.6;
   const sinFrequency = 1;
   const sinSpeed = 200;
+  let colorData = new Float32Array(4 * instanceCount);
 
   const inc = (Math.PI * 2) / sinSpeed;
   counter += inc;
 
-  boxField.forEach((elem) => {
+  // rotate SinField
+  scene.getMeshByName(entity.boxFieldRoot).addRotation(0, 0.0025, 0);
+
+  for (let i = 0; i < instanceCount; i++) {
+    const elem = boxField[i];
     elem.position.y =
       Math.sin(
         Math.sqrt(
@@ -91,23 +103,45 @@ const renderLoop = () => {
         ) + counter
       ) * sinHeight;
 
-    const hiColor = { r: 206, g: 8, b: 90 };
-    const loColor = { r: 124, g: 192, b: 162 };
-    // const loColor = { r: 153, g: 208, b: 220};
+    const hiColor = { r: 0.8, g: 0.03, b: 0.35 };
+    const loColor = { r: 0.48, g: 0.75, b: 0.62 };
 
-    const material = elem.material as BABYLON.StandardMaterial;
-    const color = BABYLON.Color3.FromInts(
-      RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.r, hiColor.r),
-      RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.g, hiColor.g),
-      RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.b, hiColor.b)
+    colorData[i * 4] = RangeMap(
+      elem.position.y,
+      -sinHeight,
+      sinHeight,
+      loColor.r,
+      hiColor.r
     );
-    material.diffuseColor = color;
-    material.emissiveColor = color;
-    elem.material = material;
-  });
+    (colorData[i * 4 + 1] = RangeMap(
+      elem.position.y,
+      -sinHeight,
+      sinHeight,
+      loColor.g,
+      hiColor.g
+    )),
+      (colorData[i * 4 + 2] = RangeMap(
+        elem.position.y,
+        -sinHeight,
+        sinHeight,
+        loColor.b,
+        hiColor.b
+      ));
+    colorData[i * 4 + 3] = 1.0;
+  }
 
-  // rotate SinField
-  scene.getMeshByName(entity.boxFieldRoot).addRotation(0, 0.0025, 0);
+  parentBox.setVerticesBuffer(
+    new BABYLON.VertexBuffer(
+      engine,
+      colorData,
+      BABYLON.VertexBuffer.ColorKind,
+      true,
+      false,
+      4,
+      true
+    )
+  );
+
   scene.render();
 
   // ShowFPS
