@@ -15,21 +15,38 @@ let counter = 0;
 const initializeScene = () => {
   scene.clearColor = BABYLON.Color4.FromInts(224, 255, 255, 255);
 
-  const camera = new BABYLON.ArcRotateCamera(entity.mainCamera, 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+  const camera = new BABYLON.ArcRotateCamera(
+    entity.mainCamera,
+    0,
+    0,
+    0,
+    new BABYLON.Vector3(0, 0, 0),
+    scene
+  );
   camera.setPosition(new BABYLON.Vector3(0, 3, -2.25));
   camera.attachControl(canvas, true);
 
-  const postProcess = new BABYLON.ImageProcessingPostProcess(entity.postProcess, 1.0, camera);
+  const postProcess = new BABYLON.ImageProcessingPostProcess(
+    entity.postProcess,
+    1.0,
+    camera
+  );
   postProcess.vignetteWeight = 0.7;
   postProcess.vignetteStretch = 5;
   postProcess.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
   postProcess.vignetteEnabled = true;
 
-  const gl = new BABYLON.GlowLayer(entity.glowLayer, scene, { mainTextureSamples: 1 });
+  const gl = new BABYLON.GlowLayer(entity.glowLayer, scene, {
+    mainTextureSamples: 1,
+  });
   gl.intensity = 0.4;
 
-  const light = new BABYLON.PointLight(entity.mainLight, new BABYLON.Vector3(10, 10, 0), scene);
-}
+  const light = new BABYLON.PointLight(
+    entity.mainLight,
+    new BABYLON.Vector3(10, 10, 0),
+    scene
+  );
+};
 
 const intializeBoxField = () => {
   // Setup the Material
@@ -38,48 +55,56 @@ const intializeBoxField = () => {
 
   // Create Object Field
   for (let i = 0; i < Math.pow(fieldSquareSize, 2); i++) {
-    const fieldLength = boxField.push(BABYLON.Mesh.CreateBox(`${entity.boxName}-${i}`, boxSize, scene));
+    const fieldLength = boxField.push(
+      BABYLON.Mesh.CreateBox(`${entity.boxName}-${i}`, boxSize, scene)
+    );
     const meshPos = fieldLength - 1;
 
     // Offsetting Field to Central Position
-    const middleOffset = fieldSquareSize * boxSize / 2 - boxSize / 2;
-    boxField[meshPos].position.x = (i % fieldSquareSize) * boxSize - middleOffset;
-    boxField[meshPos].position.z = Math.floor(i / fieldSquareSize) * boxSize - middleOffset;
+    const middleOffset = (fieldSquareSize * boxSize) / 2 - boxSize / 2;
+    boxField[meshPos].position.x =
+      (i % fieldSquareSize) * boxSize - middleOffset;
+    boxField[meshPos].position.z =
+      Math.floor(i / fieldSquareSize) * boxSize - middleOffset;
 
-    boxField[meshPos].material = boxMaterial.clone(`${entity.boxMaterial}-${i}`);
+    boxField[meshPos].material = boxMaterial.clone(
+      `${entity.boxMaterial}-${i}`
+    );
     boxField[meshPos].parent = boxFieldRoot;
   }
-}
+};
 
 const renderLoop = () => {
-
   const sinHeight = 0.6;
   const sinFrequency = 1;
   const sinSpeed = 200;
 
-  const inc = Math.PI * 2 / sinSpeed;
+  const inc = (Math.PI * 2) / sinSpeed;
   counter += inc;
 
-  boxField.forEach( (elem) => {
-        elem.position.y = Math.sin(
-          Math.sqrt(Math.pow(elem.position.x / sinFrequency, 2) + Math.pow(elem.position.z / sinFrequency, 2))
-          + counter) * sinHeight;
+  boxField.forEach((elem) => {
+    elem.position.y =
+      Math.sin(
+        Math.sqrt(
+          Math.pow(elem.position.x / sinFrequency, 2) +
+            Math.pow(elem.position.z / sinFrequency, 2)
+        ) + counter
+      ) * sinHeight;
 
-        const hiColor = { r: 206, g: 8, b: 90 };
-        const loColor = { r: 124, g: 192, b: 162};
-        // const loColor = { r: 153, g: 208, b: 220};
+    const hiColor = { r: 206, g: 8, b: 90 };
+    const loColor = { r: 124, g: 192, b: 162 };
+    // const loColor = { r: 153, g: 208, b: 220};
 
-        const material = elem.material as BABYLON.StandardMaterial;
-        const color = BABYLON.Color3
-              .FromInts(
-                RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.r, hiColor.r),
-                RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.g, hiColor.g),
-                RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.b, hiColor.b),
-              );
-        material.diffuseColor = color;
-        material.emissiveColor = color;
-        elem.material = material;
-      });
+    const material = elem.material as BABYLON.StandardMaterial;
+    const color = BABYLON.Color3.FromInts(
+      RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.r, hiColor.r),
+      RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.g, hiColor.g),
+      RangeMap(elem.position.y, -sinHeight, sinHeight, loColor.b, hiColor.b)
+    );
+    material.diffuseColor = color;
+    material.emissiveColor = color;
+    elem.material = material;
+  });
 
   // rotate SinField
   scene.getMeshByName(entity.boxFieldRoot).addRotation(0, 0.0025, 0);
@@ -87,7 +112,7 @@ const renderLoop = () => {
 
   // ShowFPS
   const fpsLabel = document.getElementById("fpsLabel");
-  fpsLabel.innerHTML =  `${engine.getFps().toFixed()} FPS`;
+  fpsLabel.innerHTML = `${engine.getFps().toFixed()} FPS`;
 };
 
 initializeScene();
