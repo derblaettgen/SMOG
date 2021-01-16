@@ -1,5 +1,6 @@
 import * as BABYLON from "babylonjs";
-import { RangeMap } from "./helper"
+import { RangeMap } from "./helper";
+import { entity } from "./enum";
 import "./styles/app.css";
 
 const canvas = document.getElementById("render-canvas") as HTMLCanvasElement;
@@ -14,30 +15,30 @@ let counter = 0;
 const initializeScene = () => {
   scene.clearColor = BABYLON.Color4.FromInts(224, 255, 255, 255);
 
-  const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+  const camera = new BABYLON.ArcRotateCamera(entity.mainCamera, 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
   camera.setPosition(new BABYLON.Vector3(0, 3, -2.25));
   camera.attachControl(canvas, true);
 
-  const postProcess = new BABYLON.ImageProcessingPostProcess("processing", 1.0, camera);
+  const postProcess = new BABYLON.ImageProcessingPostProcess(entity.postProcess, 1.0, camera);
   postProcess.vignetteWeight = 0.7;
   postProcess.vignetteStretch = 5;
   postProcess.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
   postProcess.vignetteEnabled = true;
 
-  const gl = new BABYLON.GlowLayer("glow", scene, { mainTextureSamples: 1 });
+  const gl = new BABYLON.GlowLayer(entity.glowLayer, scene, { mainTextureSamples: 1 });
   gl.intensity = 0.4;
 
-  const light = new BABYLON.PointLight("light", new BABYLON.Vector3(10, 10, 0), scene);
+  const light = new BABYLON.PointLight(entity.mainLight, new BABYLON.Vector3(10, 10, 0), scene);
 }
 
 const intializeBoxField = () => {
   // Setup the Material
-  const boxMaterial = new BABYLON.StandardMaterial("material", scene);
-  const boxFieldRoot = new BABYLON.Mesh("Root", scene);
+  const boxMaterial = new BABYLON.StandardMaterial(entity.boxMaterial, scene);
+  const boxFieldRoot = new BABYLON.Mesh(entity.boxFieldRoot, scene);
 
   // Create Object Field
   for (let i = 0; i < Math.pow(fieldSquareSize, 2); i++) {
-    const fieldLength = boxField.push(BABYLON.Mesh.CreateBox("box", boxSize, scene));
+    const fieldLength = boxField.push(BABYLON.Mesh.CreateBox(`${entity.boxName}-${i}`, boxSize, scene));
     const meshPos = fieldLength - 1;
 
     // Offsetting Field to Central Position
@@ -45,7 +46,7 @@ const intializeBoxField = () => {
     boxField[meshPos].position.x = (i % fieldSquareSize) * boxSize - middleOffset;
     boxField[meshPos].position.z = Math.floor(i / fieldSquareSize) * boxSize - middleOffset;
 
-    boxField[meshPos].material = boxMaterial.clone(`Material${i}`);
+    boxField[meshPos].material = boxMaterial.clone(`${entity.boxMaterial}-${i}`);
     boxField[meshPos].parent = boxFieldRoot;
   }
 }
@@ -81,7 +82,7 @@ const renderLoop = () => {
       });
 
   // rotate SinField
-  scene.getMeshByName("Root").addRotation(0, 0.0025, 0);
+  scene.getMeshByName(entity.boxFieldRoot).addRotation(0, 0.0025, 0);
   scene.render();
 
   // ShowFPS
