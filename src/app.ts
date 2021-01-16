@@ -1,5 +1,5 @@
 import * as BABYLON from "babylonjs";
-import "./styles/app.scss";
+import "./styles/app.css";
 
 function rangeMap(value: any, inMin: any, inMax: any, outMin: any, outMax: any ) {
   return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
