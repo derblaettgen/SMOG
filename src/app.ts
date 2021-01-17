@@ -205,6 +205,6 @@ const setRandomCameraPositionIndex = () => {
   camera.target = cameraPositions[cameraPositionIndex].lookAt;
 };
 
-canvas.addEventListener("touchend", () => {
+canvas.addEventListener("click", () => {
   setRandomCameraPositionIndex();
 });
