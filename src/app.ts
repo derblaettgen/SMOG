@@ -10,7 +10,7 @@ const scene = new BABYLON.Scene(engine);
 const boxField: BABYLON.InstancedMesh[] = [];
 const boxSize = 0.4;
 let parentBox: BABYLON.Mesh;
-const fieldSquareSize = 64;
+const fieldSquareSize = 32;
 const instanceCount = Math.pow(fieldSquareSize, 2);
 let counter = 0;
 
