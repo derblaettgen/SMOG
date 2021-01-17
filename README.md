@@ -13,7 +13,7 @@ Just some exercise using Typescript and BabylonJS to do some MotionGraphics with
 
 ```
 npm install
-npm run start:dev
+npm run start
 ```
 
 3. Open Browser and enter: [http://localhost:9000](http://localhost:9000)
