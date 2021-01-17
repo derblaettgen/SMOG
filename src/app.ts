@@ -2,6 +2,32 @@ import * as BABYLON from "babylonjs";
 import { RangeMap } from "./helper";
 import { entity } from "./enum";
 import "./styles/app.css";
+import { Vector3 } from "babylonjs";
+
+const cameraPositions = [
+  {
+    position: new Vector3(0, -2, 0),
+    lookAt: new Vector3(0, 0, 0),
+  },
+  {
+    position: new Vector3(0, 5, 0),
+    lookAt: new Vector3(0, 0, 0),
+  },
+  {
+    position: new Vector3(2, 1.75, 0),
+    lookAt: new Vector3(2, 0, 2.25),
+  },
+  {
+    position: new Vector3(2, -1.75, 0),
+    lookAt: new Vector3(2, 0, 2.25),
+  },
+  {
+    position: new Vector3(0, 3, -5),
+    lookAt: new Vector3(0, 0.5, -2),
+  },
+];
+
+let cameraPositionIndex = Math.floor(Math.random() * 5);
 
 const canvas = document.getElementById("render-canvas") as HTMLCanvasElement;
 const engine = new BABYLON.Engine(canvas, true, null, true);
@@ -10,7 +36,7 @@ const scene = new BABYLON.Scene(engine);
 const boxField: BABYLON.InstancedMesh[] = [];
 const boxSize = 0.4;
 let parentBox: BABYLON.Mesh;
-const fieldSquareSize = 32;
+const fieldSquareSize = 48;
 const instanceCount = Math.pow(fieldSquareSize, 2);
 let counter = 0;
 
@@ -25,8 +51,9 @@ const initializeScene = () => {
     new BABYLON.Vector3(0, 0, 0),
     scene
   );
-  camera.setPosition(new BABYLON.Vector3(0, 3, -2.25));
-  camera.attachControl(canvas, true);
+
+  camera.position = cameraPositions[cameraPositionIndex].position;
+  camera.target = cameraPositions[cameraPositionIndex].lookAt;
 
   const imageProcessing = new BABYLON.ImageProcessingPostProcess(
     entity.imagePostProcess,
@@ -162,3 +189,22 @@ intializeBoxField();
 engine.runRenderLoop(renderLoop);
 
 window.addEventListener("resize", () => engine.resize());
+
+const setRandomCameraPositionIndex = () => {
+  let newCameraPositionIndex = Math.floor(Math.random() * 5);
+  while (newCameraPositionIndex === cameraPositionIndex) {
+    newCameraPositionIndex = Math.floor(Math.random() * 5);
+  }
+
+  cameraPositionIndex = newCameraPositionIndex;
+
+  const camera = scene.getCameraByName(
+    entity.mainCamera
+  ) as BABYLON.ArcFollowCamera;
+  camera.position = cameraPositions[cameraPositionIndex].position;
+  camera.target = cameraPositions[cameraPositionIndex].lookAt;
+};
+
+canvas.addEventListener("touchend", () => {
+  setRandomCameraPositionIndex();
+});
