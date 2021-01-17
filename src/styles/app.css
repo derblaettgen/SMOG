@@ -4,8 +4,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 }
 
 html {
@@ -16,19 +16,32 @@ body {
   font-family: "Lato", sans-serif;
   font-size: 1.6rem;
   overflow: hidden;
-  background: hotpink;
 }
 
 #render-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 100vw;
   height: 100vh;
 }
 
 #fpsLabel {
   position: absolute;
-  padding-left: 1rem;
-  padding-top: 1rem;
+  padding: 2rem;
   pointer-events: none;
   font-weight: 800;
   color: white;
+}
+
+@media screen and (orientation: portrait) {
+  #fpsLabel {
+    top: 0;
+  }
+}
+
+@media screen and (orientation: landscape) {
+  #fpsLabel {
+    bottom: 0;
+  }
 }
